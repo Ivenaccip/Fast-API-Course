@@ -56,7 +56,14 @@ class UserLogin(UserBase):
     password: str = Field(...,
                           min_length=8,
                           max_length=64,
-                          example='password',)
+                          example='password')
+
+
+class UserRegister(User):
+    password: str = Field(...,
+                          min_length=8,
+                          max_length=64,
+                          example='password')
 
 
 class Tweet(BaseModel):
@@ -105,7 +112,22 @@ def home() -> Dict[str, str]:
           summary='Sign up',
           tags=['Auth', 'Users'])
 def signup(user: User) -> User:
-    pass
+    """
+    Signup
+
+    This path operation register an user in the app
+
+    Parameters:
+        - Request body parameter
+            - user : UserRegister
+
+    Returns a json with the basic user information:
+        - user_id: UUID
+        - email: Emailstr
+        - first_name: str
+        - last_name: str
+        - birth_day: str
+    """
 
 
 @app.post('/auth/login',
@@ -118,7 +140,6 @@ def login(user: User) -> User:
 
 
 ## Users
-
 
 @app.get('/users/',
          response_model=List[User],

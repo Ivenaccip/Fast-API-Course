@@ -106,7 +106,7 @@ def home() -> Dict[str, str]:
     }
 
 
-## Auth
+## Sing and login
 @app.post('/signup',
           response_model=User,
           status_code=status.HTTP_201_CREATED,
@@ -151,14 +151,29 @@ def login(user: User):
 
 ## Users
 
+### Show users
 @app.get('/users/',
          response_model=List[User],
          status_code=status.HTTP_200_OK,
-         summary='Get all users',
+         summary='Show all users',
          tags=['Users'])
-def list_users() -> List[User]:
-    pass
+def show_users() -> List[User]:
+    """
+    This path operation show all users in the app
 
+    Parameters:
+        -
+
+    Returns a json list with all users in the app, with the following keys:
+        - user_id: UUID
+        - email: Emailstr
+        - first_name: str
+        - last_name: str
+        - birth_day: datetime
+    """
+    with open("users.json", "r", encoding="utf-8") as f:
+        results = json.loads(f.read())
+        return results
 
 @app.get('/users/{id}',
          response_model=User,

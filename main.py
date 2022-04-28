@@ -1,4 +1,5 @@
 # Python
+from encodings import utf_8
 from uuid import UUID
 from datetime import date
 from datetime import datetime
@@ -15,7 +16,10 @@ from pydantic import Field
 from fastapi import FastAPI
 from fastapi import status
 from fastapi import Path
+from fastapi import Body
 
+#json
+import json
 
 # Initialize the app
 app = FastAPI()
@@ -27,10 +31,16 @@ app = FastAPI()
 
 class UserBase(BaseModel):
 
-    id: UUID = Field(...,)
+    user_id: UUID = Field(...,)
 
     email: EmailStr = Field(...,)
 
+class UserLogin(UserBase):
+
+    password: str = Field(...,
+                          min_length=8,
+                          max_length=64,
+                          example='password')
 
 class User(UserBase):
 
@@ -46,18 +56,9 @@ class User(UserBase):
                            max_length=50,
                            example='Doe',)
 
-    birth_date: Optional[date] = Field(default=None,
+    birth_day: Optional[date] = Field(default=None,
                                        title='Birth date',
                                        example='2021-01-01',)
-
-
-class UserLogin(UserBase):
-
-    password: str = Field(...,
-                          min_length=8,
-                          max_length=64,
-                          example='password')
-
 
 class UserRegister(User):
     password: str = Field(...,
@@ -106,12 +107,12 @@ def home() -> Dict[str, str]:
 
 
 ## Auth
-@app.post('/auth/signup',
-          response_model=UserLogin,
+@app.post('/signup',
+          response_model=User,
           status_code=status.HTTP_201_CREATED,
           summary='Sign up',
-          tags=['Auth', 'Users'])
-def signup(user: User) -> User:
+          tags=['Users'])
+def signup(user: UserRegister = Body(...)):
     """
     Signup
 
@@ -126,16 +127,25 @@ def signup(user: User) -> User:
         - email: Emailstr
         - first_name: str
         - last_name: str
-        - birth_day: str
+        - birth_day: datetime
     """
+    with open("users.json", "r+", encoding="utf_8") as f:
+        results = json.loads(f.read())
+        user_dict = user.dict()
+        user_dict["user_id"] = str(user_dict["user_id"])
+        user_dict["birth_day"] = str(user_dict["birth_day"])
+        results.append(user_dict)
+        f.seek(0)
+        f.write(json.dumps(results))
+        return user
 
 
-@app.post('/auth/login',
+@app.post('/login',
           response_model=UserLogin,
           status_code=status.HTTP_200_OK,
           summary='Login',
-          tags=['Auth', 'Users'])
-def login(user: User) -> User:
+          tags=['Users'])
+def login(user: User):
     pass
 
 

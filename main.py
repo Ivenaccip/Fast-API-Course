@@ -33,7 +33,8 @@ class UserBase(BaseModel):
 
     user_id: UUID = Field(...,)
 
-    email: EmailStr = Field(...,)
+    email: EmailStr = Field(...,
+                          example = 'ivenaccip@gmail.com')
 
 class UserLogin(UserBase):
 
@@ -48,13 +49,13 @@ class User(UserBase):
                             title='First name',
                             min_length=2,
                             max_length=50,
-                            example='John',)
+                            example='Leonardo',)
 
     last_name: str = Field(...,
                            title='Last name',
                            min_length=2,
                            max_length=50,
-                           example='Doe',)
+                           example='Montaño',)
 
     birth_day: Optional[date] = Field(default=None,
                                        title='Birth date',
@@ -66,25 +67,19 @@ class UserRegister(User):
                           max_length=64,
                           example='password')
 
-
 class Tweet(BaseModel):
 
-    id: UUID = Field(...)
+    tweet_id: UUID = Field(...)
 
     content: str = Field(...,
                          min_length=1,
                          max_length=256,)
 
-    created_at: datetime = Field(default=datetime.now(),
-                                title='Creation date',
-                                example='2020-01-01T00:00:00Z',)
+    created_at: datetime = Field(default=datetime.now())
 
-    updated_at: Optional[datetime] = Field(default=None,
-                                           title='Last update date',
-                                           example='2020-01-01T00:00:00Z',)
+    updated_at: Optional[datetime] = Field(default=None)
 
-    created_by: User = Field(...,
-                             title='User who created the tweet',)
+    by: User = Field(...)
 
 
 # ============================================================
@@ -159,10 +154,12 @@ def login(user: User):
          tags=['Users'])
 def show_users() -> List[User]:
     """
+    Show users
+
     This path operation show all users in the app
 
     Parameters:
-        -
+        - user : UserRegister
 
     Returns a json list with all users in the app, with the following keys:
         - user_id: UUID
@@ -222,13 +219,41 @@ def delete_user(
 ## Tweets
 
 
-@app.get('/tweets/',
-         response_model=List[Tweet],
+@app.post(
+         path = '/tweets/',
+         response_model=Tweet,
          status_code=status.HTTP_200_OK,
-         summary='Get all tweets',
+         summary='Post a tweet',
          tags=['Tweets'])
-def list_tweets() -> List[Tweet]:
-    pass
+def list_tweets(tweet: Tweet = Body(...)):
+    """
+    Post a tweet
+
+    This path operation post a tweet in the app
+
+    Parameters:
+        - Request Body Parameter:
+            - tweet : Tweet
+
+    Returns a json list with the basic tweet information:
+        tweet_id: UUID
+        content: str
+        created_at: datetime
+        updated_at: Optional[datetime]
+        by: User
+    """
+    with open("tweets.json", "r+", encoding="utf_8") as f:
+        results = json.loads(f.read())
+        tweet_dict = tweet.dict()
+        tweet_dict["tweet_id"] = str(tweet_dict["tweet_id"])
+        tweet_dict["created_at"] = str(tweet_dict["created_at"])
+        tweet_dict["updated_at"] = str(tweet_dict["updated_at"])
+        tweet_dict["by"]["user_id"] = str(tweet_dict["by"]["user_id"])
+        tweet_dict["by"]["birth_day"] = str(tweet_dict["by"]["birth_day"])
+        results.append(tweet_dict)
+        f.seek(0)
+        f.write(json.dumps(results))
+        return tweet
 
 
 @app.get('/tweets/{id}',

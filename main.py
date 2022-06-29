@@ -90,16 +90,25 @@ class Tweet(BaseModel):
 @app.get('/',
          summary='Home',
          status_code=status.HTTP_200_OK)
-def home() -> Dict[str, str]:
-    """Home route.
-
-    Returns a message indicating that the app is running.
+def home():
     """
+    Show users
 
-    return {
-        'message': 'Twitter API is working!',
-    }
+    This path operation show all tweets in the app
 
+    Parameters:
+        - user : UserRegister
+
+    Returns a json list with all tweets in the app, with the following keys:
+        - user_id: UUID
+        - email: Emailstr
+        - first_name: str
+        - last_name: str
+        - birth_day: datetime
+    """
+    with open("users.json", "r", encoding="utf-8") as f:
+        results = json.loads(f.read())
+        return results
 
 ## Sing and login
 @app.post('/signup',
@@ -162,13 +171,13 @@ def show_users() -> List[User]:
         - user : UserRegister
 
     Returns a json list with all users in the app, with the following keys:
-        - user_id: UUID
-        - email: Emailstr
-        - first_name: str
-        - last_name: str
-        - birth_day: datetime
+        tweet_id: UUID
+        content: str
+        created_at: datetime
+        updated_at: Optional[datetime]
+        by: User
     """
-    with open("users.json", "r", encoding="utf-8") as f:
+    with open("tweets.json", "r", encoding="utf-8") as f:
         results = json.loads(f.read())
         return results
 
